@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 
 // Replace with your MongoDB connection string
-const MONGO_URI = "mongodb+srv://saran:saranraj7s@cluster0.3nrdw.mongodb.net/windFarm";
+const MONGO_URI = process.env.MONGO_URI ;
+
 
 // Inline Turbine Schema & Model definition
 const TurbineSchema = new mongoose.Schema(
