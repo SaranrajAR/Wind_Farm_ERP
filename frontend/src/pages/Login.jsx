@@ -12,40 +12,54 @@ export default function Login() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium">Email</label>
-          <input
-            type="email"
-            required
-            className="w-full mt-1 p-2 border rounded-md"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          />
+    <div className="min-h-[80vh] flex flex-col justify-center items-center px-4">
+      <div className="w-full max-w-sm bg-white p-8 border border-slate-200 rounded-lg shadow-sm">
+        <div className="mb-6">
+          <h1 className="text-lg font-bold text-slate-900">Sign in to console</h1>
+          <p className="text-xs text-slate-500 mt-1">Enter your organization credentials to access SCADA</p>
         </div>
-        <div>
-          <label className="block text-sm font-medium">Password</label>
-          <input
-            type="password"
-            required
-            className="w-full mt-1 p-2 border rounded-md"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={isLoggingIn}
-          className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-        >
-          {isLoggingIn ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
-      <p className="mt-4 text-center text-sm">
-        Don't have an account? <Link to="/signup" className="text-blue-600 underline">Sign up</Link>
-      </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Email Address</label>
+            <input
+              type="email"
+              required
+              placeholder="user@gridpulse.io"
+              className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-md text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900 placeholder:text-slate-400"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Password</label>
+            <input
+              type="password"
+              required
+              placeholder="••••••••"
+              className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-md text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900 placeholder:text-slate-400"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoggingIn}
+            className="w-full py-2 text-xs font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-md transition shadow-sm disabled:opacity-50"
+          >
+            {isLoggingIn ? 'Verifying...' : 'Sign in'}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-xs text-slate-500">
+          Need an account?{' '}
+          <Link to="/signup" className="text-slate-900 font-semibold hover:underline">
+            Register here
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

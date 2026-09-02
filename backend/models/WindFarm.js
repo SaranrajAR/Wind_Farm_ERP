@@ -36,11 +36,6 @@ const WindFarmSchema = new mongoose.Schema(
         "Other"
       ]
     },
-    managerId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // Links to your FarmManager user
-      required: true
-    },
     totalCapacity: {
       type: Number,
       required: true // Capacity in MW (e.g., 45.5)

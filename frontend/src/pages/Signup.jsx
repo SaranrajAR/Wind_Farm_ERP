@@ -14,66 +14,83 @@ export default function Signup() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    signup(formData, navigate); // Navigates to /login after successful creation
+    signup(formData, navigate);
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center">Create Account</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium">Full Name</label>
-          <input
-            type="text"
-            required
-            className="w-full mt-1 p-2 border rounded-md"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          />
+    <div className="min-h-[80vh] flex flex-col justify-center items-center px-4 py-8">
+      <div className="w-full max-w-sm bg-white p-8 border border-slate-200 rounded-lg shadow-sm">
+        <div className="mb-6">
+          <h1 className="text-lg font-bold text-slate-900">Create operator account</h1>
+          <p className="text-xs text-slate-500 mt-1">Select your access role for system permissions</p>
         </div>
-        <div>
-          <label className="block text-sm font-medium">Email</label>
-          <input
-            type="email"
-            required
-            className="w-full mt-1 p-2 border rounded-md"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Password</label>
-          <input
-            type="password"
-            required
-            className="w-full mt-1 p-2 border rounded-md"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Role</label>
-          <select
-            className="w-full mt-1 p-2 border rounded-md"
-            value={formData.role}
-            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Full Name</label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. John Doe"
+              className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-md text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900 placeholder:text-slate-400"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Email Address</label>
+            <input
+              type="email"
+              required
+              placeholder="name@organization.com"
+              className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-md text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900 placeholder:text-slate-400"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Password</label>
+            <input
+              type="password"
+              required
+              placeholder="••••••••"
+              className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-md text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900 placeholder:text-slate-400"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Operational Role</label>
+            <select
+              className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-md text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
+              value={formData.role}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+            >
+              <option value="Engineer">Engineer</option>
+              <option value="windFarmManager">Wind Farm Manager</option>
+              <option value="tnebAdmin">TNEB Admin</option>
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSigningUp}
+            className="w-full py-2 text-xs font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-md transition shadow-sm disabled:opacity-50"
           >
-            <option value="Engineer">Engineer</option>
-            <option value="windFarmManager">Wind Farm Manager</option>
-            <option value="tnebAdmin">TNEB Admin</option>
-          </select>
-        </div>
-        <button
-          type="submit"
-          disabled={isSigningUp}
-          className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-        >
-          {isSigningUp ? 'Creating Account...' : 'Sign Up'}
-        </button>
-      </form>
-      <p className="mt-4 text-center text-sm">
-        Already have an account? <Link to="/login" className="text-blue-600 underline">Log in</Link>
-      </p>
+            {isSigningUp ? 'Creating Account...' : 'Complete Registration'}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-xs text-slate-500">
+          Already registered?{' '}
+          <Link to="/login" className="text-slate-900 font-semibold hover:underline">
+            Log in
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

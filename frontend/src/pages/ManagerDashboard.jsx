@@ -21,7 +21,6 @@ const ManagerDashboard = () => {
     deleteTurbine 
   } = useManagerStore();
 
-  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTurbineId, setEditingTurbineId] = useState(null);
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
@@ -29,7 +28,6 @@ const ManagerDashboard = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingTurbineId, setDeletingTurbineId] = useState(null);
 
-  // Toast Notification State: { id, type: 'loading' | 'success' | 'error', message }
   const [toasts, setToasts] = useState([]);
   const toastTimers = useRef({});
 
@@ -59,7 +57,6 @@ const ManagerDashboard = () => {
     fetchTurbines();
   }, [fetchTurbines]);
 
-  // Modal Handlers
   const handleOpenModal = (turbine = null) => {
     setFormError('');
     if (turbine) {
@@ -85,14 +82,13 @@ const ManagerDashboard = () => {
     setFormError('');
   };
 
-  // Form Submit Handler (Create & Update)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
     setIsSubmitting(true);
 
     const toastId = `mutation-${Date.now()}`;
-    const actionLabel = editingTurbineId ? 'Updating turbine details' : 'Registering new turbine';
+    const actionLabel = editingTurbineId ? 'Updating turbine' : 'Registering turbine';
     showToast(toastId, 'loading', `${actionLabel}...`, false);
 
     const payload = {
@@ -116,19 +112,18 @@ const ManagerDashboard = () => {
         toastId, 
         'success', 
         editingTurbineId 
-          ? `Turbine ${payload.turbineCode} updated successfully!` 
-          : `Turbine ${payload.turbineCode} deployed to grid!`
+          ? `Turbine ${payload.turbineCode} updated.` 
+          : `Turbine ${payload.turbineCode} registered.`
       );
     } else {
-      const errMsg = res.message || 'Operation failed. Please try again.';
+      const errMsg = res.message || 'Operation failed. Please verify form values.';
       setFormError(errMsg);
       showToast(toastId, 'error', errMsg);
     }
   };
 
-  // Delete Action Handler
   const handleDelete = async (turbine) => {
-    if (window.confirm(`Delete turbine unit ${turbine.turbineCode}? This cannot be undone.`)) {
+    if (window.confirm(`Are you sure you want to decommission unit ${turbine.turbineCode}?`)) {
       const toastId = `delete-${turbine._id}`;
       setDeletingTurbineId(turbine._id);
       showToast(toastId, 'loading', `Decommissioning ${turbine.turbineCode}...`, false);
@@ -137,411 +132,297 @@ const ManagerDashboard = () => {
       setDeletingTurbineId(null);
 
       if (res.success) {
-        showToast(toastId, 'success', `Turbine ${turbine.turbineCode} removed from farm.`);
+        showToast(toastId, 'success', `Turbine ${turbine.turbineCode} removed.`);
       } else {
-        showToast(toastId, 'error', res.message || 'Failed to delete turbine.');
+        showToast(toastId, 'error', res.message || 'Failed to remove turbine.');
       }
     }
   };
 
-  // Initial Full Screen High-Tech Loading View
+  // Status Badge Component
+  const getStatusBadge = (status) => {
+    const s = status?.toUpperCase();
+    if (s === 'ACTIVE' || s === 'OPERATIONAL') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/80 rounded">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          Active
+        </span>
+      );
+    }
+    if (s === 'MAINTENANCE') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+          Maintenance
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 rounded">
+        <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+        {status || 'Offline'}
+      </span>
+    );
+  };
+
   if (isLoading && turbines.length === 0) {
     return (
-      <div className="w-full min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-        <div className="absolute w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse" />
-        <div className="absolute w-72 h-72 bg-emerald-500/10 rounded-full blur-[90px] pointer-events-none -bottom-10" />
-
-        <div className="relative z-10 flex flex-col items-center">
-          {/* Animated SVG Turbine Loader */}
-          <div className="relative w-28 h-28 flex items-center justify-center">
-            <div className="absolute inset-0 rounded-full border border-cyan-500/20 animate-ping" />
-            <div className="absolute inset-2 rounded-full border-2 border-dashed border-cyan-500/40 animate-[spin_6s_linear_infinite]" />
-            <svg
-              className="w-16 h-16 text-cyan-400 animate-[spin_1.8s_linear_infinite]"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <circle cx="12" cy="12" r="2.5" />
-              <path d="M12 2C12 2 13.5 6 12 12C10.5 6 12 2 12 2Z" />
-              <path d="M20.66 17C20.66 17 16.5 16.5 12 12C16.5 7.5 20.66 17 20.66 17Z" />
-              <path d="M3.34 17C3.34 17 7.5 16.5 12 12C7.5 7.5 3.34 17 3.34 17Z" />
-            </svg>
-          </div>
-
-          <div className="text-center mt-6 space-y-1.5">
-            <h3 className="text-lg font-bold text-white tracking-wider uppercase">
-              Connecting Wind Farm SCADA
-            </h3>
-            <p className="text-xs text-cyan-400/80 font-mono tracking-widest uppercase animate-pulse">
-              Syncing Telemetry & Turbine Grid...
-            </p>
-          </div>
-        </div>
+      <div className="w-full min-h-[70vh] flex flex-col items-center justify-center">
+        <div className="w-6 h-6 border-2 border-slate-900 border-t-transparent rounded-full animate-spin mb-3" />
+        <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Syncing SCADA Telemetry...</p>
       </div>
     );
   }
 
-  // Connection Failure State
   if (error && turbines.length === 0) {
     return (
-      <div className="w-full min-h-screen bg-slate-950 flex items-center justify-center p-6">
-        <div className="bg-slate-900 border border-red-500/30 text-red-400 p-8 rounded-2xl max-w-md w-full text-center shadow-2xl">
-          <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <p className="font-semibold text-lg text-white mb-1">SCADA Connection Lost</p>
-          <p className="text-sm text-slate-400 mb-6">{error}</p>
-          <button 
-            onClick={fetchTurbines}
-            className="w-full py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-lg font-medium text-sm transition shadow-lg shadow-red-600/30"
-          >
-            Retry Connection
-          </button>
+      <div className="max-w-md mx-auto my-16 p-6 bg-white border border-rose-200 rounded-lg text-center shadow-sm">
+        <div className="w-10 h-10 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-3">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
         </div>
+        <h3 className="text-sm font-semibold text-slate-900 mb-1">Telemetrics Disconnected</h3>
+        <p className="text-xs text-slate-500 mb-4">{error}</p>
+        <button
+          onClick={fetchTurbines}
+          className="px-3.5 py-1.5 text-xs font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-md transition-colors"
+        >
+          Retry Connection
+        </button>
       </div>
     );
   }
 
-  const isFarmActive = farmDetails?.status?.toUpperCase() === 'ACTIVE';
-  const activeTurbinesCount = turbines.filter(
-    (t) => t.status?.toUpperCase() === 'ACTIVE' || t.status?.toUpperCase() === 'OPERATIONAL'
-  ).length;
+  const activeCount = turbines.filter(t => ['ACTIVE', 'OPERATIONAL'].includes(t.status?.toUpperCase())).length;
 
   return (
-    <div className="w-full min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 lg:p-8 relative">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       
-      {/* Toast Notification Container (Fixed Top Right) */}
-      <div className="fixed top-5 right-5 z-50 flex flex-col gap-3 pointer-events-none max-w-md w-full">
+      {/* Toast Notification Container */}
+      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full">
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`pointer-events-auto flex items-center justify-between gap-3 p-4 rounded-xl border backdrop-blur-md shadow-2xl transition-all duration-300 transform translate-y-0 ${
-              toast.type === 'loading'
-                ? 'bg-slate-900/90 border-cyan-500/40 text-cyan-300'
-                : toast.type === 'success'
-                ? 'bg-slate-900/90 border-emerald-500/40 text-emerald-300'
-                : 'bg-slate-900/90 border-rose-500/40 text-rose-300'
+            className={`pointer-events-auto flex items-center justify-between gap-3 p-3 bg-white border rounded-lg shadow-md text-xs font-medium ${
+              toast.type === 'error' ? 'border-rose-200 text-rose-800' : 'border-slate-200 text-slate-800'
             }`}
           >
-            <div className="flex items-center gap-3">
-              {toast.type === 'loading' && (
-                <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin shrink-0" />
-              )}
-              {toast.type === 'success' && (
-                <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-                  <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              )}
-              {toast.type === 'error' && (
-                <div className="w-5 h-5 rounded-full bg-rose-500/20 flex items-center justify-center shrink-0">
-                  <svg className="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </div>
-              )}
-              <span className="text-xs font-semibold text-slate-200 tracking-wide">
-                {toast.message}
-              </span>
+            <div className="flex items-center gap-2">
+              {toast.type === 'loading' && <div className="w-3.5 h-3.5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />}
+              {toast.type === 'success' && <span className="text-emerald-600 font-bold">✓</span>}
+              {toast.type === 'error' && <span className="text-rose-600 font-bold">✕</span>}
+              <span>{toast.message}</span>
             </div>
-
-            <button
-              onClick={() => removeToast(toast.id)}
-              className="text-slate-400 hover:text-white transition"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <button onClick={() => removeToast(toast.id)} className="text-slate-400 hover:text-slate-600">×</button>
           </div>
         ))}
       </div>
 
-      <div className="w-full max-w-[1600px] mx-auto space-y-6">
-        
-        {/* Wind Farm Profile Header Card */}
-        {farmDetails && (
-          <div className="relative overflow-hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 lg:p-8 shadow-xl">
-            <div className="absolute top-0 right-0 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative z-10">
-              <div className="space-y-3 max-w-3xl">
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <span
-                    className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full border ${
-                      isFarmActive
-                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                        : 'bg-rose-500/15 text-rose-400 border-rose-500/30'
-                    }`}
-                  >
-                    ● {farmDetails.status || 'ACTIVE'}
-                  </span>
-                  
-                  {farmDetails.district && (
-                    <span className="text-xs text-slate-300 bg-slate-800/80 px-3 py-1 rounded-md border border-slate-700 font-medium">
-                      {farmDetails.district}
-                    </span>
-                  )}
-                </div>
-
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white">
-                  {farmDetails.farmName}
-                </h1>
-
-                <p className="text-slate-400 text-sm flex items-start sm:items-center gap-2">
-                  <svg className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5 sm:mt-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span>{farmDetails.address || 'Location Address Not Set'}</span>
-                </p>
-              </div>
-
-              {/* Grid Connection Summary */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-950/70 border border-slate-800/90 p-4 rounded-xl w-full lg:w-auto shrink-0">
-                <div className="space-y-1">
-                  <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Coordinates</p>
-                  <p className="text-sm font-mono text-slate-200">
-                    {farmDetails.location?.coordinates && farmDetails.location.coordinates.length === 2
-                      ? `${farmDetails.location.coordinates[1]}°, ${farmDetails.location.coordinates[0]}°`
-                      : '77.53°, 8.25°'}
-                  </p>
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Substation</p>
-                  <p className="text-sm font-medium text-slate-200">
-                    {farmDetails.substationName || 'Kayathar 230kV SS'}
-                  </p>
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Feeder Code</p>
-                  <p className="text-sm font-mono text-cyan-400 font-bold">
-                    {farmDetails.feederCode || 'FDR-33KV-01'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Farm Stat Summary Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-800">
-              <div className="bg-slate-950/40 p-3 rounded-lg border border-slate-800/60">
-                <p className="text-[11px] uppercase tracking-wider text-slate-500 font-bold">Total Capacity</p>
-                <p className="text-2xl font-black text-cyan-400 mt-1">
-                  {farmDetails.totalCapacity ?? '45.5'} <span className="text-xs font-normal text-slate-400">MW</span>
-                </p>
-              </div>
-
-              <div className="bg-slate-950/40 p-3 rounded-lg border border-slate-800/60">
-                <p className="text-[11px] uppercase tracking-wider text-slate-500 font-bold">Total Turbines</p>
-                <p className="text-2xl font-black text-white mt-1">{turbines.length}</p>
-              </div>
-
-              <div className="bg-slate-950/40 p-3 rounded-lg border border-slate-800/60">
-                <p className="text-[11px] uppercase tracking-wider text-slate-500 font-bold">Active Units</p>
-                <p className="text-2xl font-black text-emerald-400 mt-1">{activeTurbinesCount}</p>
-              </div>
-
-              <div className="bg-slate-950/40 p-3 rounded-lg border border-slate-800/60">
-                <p className="text-[11px] uppercase tracking-wider text-slate-500 font-bold">Commission Date</p>
-                <p className="text-sm font-medium text-slate-200 mt-2">
-                  {farmDetails.createdAt ? new Date(farmDetails.createdAt).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                  }) : 'Aug 30, 2026'}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Turbines Grid Header & Actions */}
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-              Turbine Units
-              <span className="text-xs bg-slate-800 text-slate-300 font-semibold px-2.5 py-0.5 rounded-full border border-slate-700">
-                {turbines.length}
+      {/* Header & Meta Summary */}
+      <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+          <div>
+            <div className="flex items-center gap-2.5 mb-1.5">
+              <h1 className="text-xl font-bold tracking-tight text-slate-900">
+                {farmDetails?.farmName || 'Wind Farm Operations'}
+              </h1>
+              <span className="px-2 py-0.5 text-xs font-semibold rounded bg-slate-100 text-slate-700 border border-slate-200">
+                {farmDetails?.district || 'Sector Overview'}
               </span>
-            </h2>
-
-            <button
-              onClick={() => handleOpenModal()}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-medium text-sm transition shadow-lg shadow-cyan-600/20"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-              </svg>
-              Add New Turbine
-            </button>
+            </div>
+            <p className="text-xs text-slate-500 flex items-center gap-1.5">
+              <span>{farmDetails?.address || 'Location information configured via SCADA'}</span>
+              <span>•</span>
+              <span className="font-mono text-slate-600">SS: {farmDetails?.substationName || '230kV SS'}</span>
+              <span>•</span>
+              <span className="font-mono text-slate-600">Feeder: {farmDetails?.feederCode || 'FDR-01'}</span>
+            </p>
           </div>
 
-          {/* Turbines Grid View */}
-          {turbines.length === 0 ? (
-            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-12 text-center text-slate-400">
-              <p className="text-base font-medium">No turbines found in this wind farm.</p>
-              <p className="text-xs text-slate-500 mt-1">Click "Add New Turbine" above to register your first unit.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {turbines.map((turbine) => {
-                const isUnitActive =
-                  turbine.status?.toUpperCase() === 'ACTIVE' || turbine.status?.toUpperCase() === 'OPERATIONAL';
+          <button
+            onClick={() => handleOpenModal()}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-md transition shadow-sm self-start md:self-auto"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Turbine Unit
+          </button>
+        </div>
 
-                return (
-                  <div 
-                    key={turbine._id} 
-                    className="bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-cyan-500/40 rounded-xl p-4 transition-all duration-200 flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="flex justify-between items-start mb-3">
+        {/* Metric Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4">
+          <div>
+            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">Total Units</span>
+            <p className="text-xl font-semibold text-slate-900 mt-0.5">{turbines.length}</p>
+          </div>
+          <div>
+            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">Active Operational</span>
+            <p className="text-xl font-semibold text-emerald-600 mt-0.5">{activeCount}</p>
+          </div>
+          <div>
+            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">Total Farm Capacity</span>
+            <p className="text-xl font-semibold text-slate-900 mt-0.5">
+              {farmDetails?.totalCapacity ?? '45.5'} <span className="text-xs font-normal text-slate-500">MW</span>
+            </p>
+          </div>
+          <div>
+            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">Commissioned</span>
+            <p className="text-sm font-medium text-slate-700 mt-1">
+              {farmDetails?.createdAt ? new Date(farmDetails.createdAt).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              }) : 'Current Period'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Turbines Inventory Table */}
+      <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-200 flex justify-between items-center">
+          <h2 className="text-sm font-semibold text-slate-900">Turbine Inventory</h2>
+          <span className="text-xs text-slate-500 font-mono">{turbines.length} registered</span>
+        </div>
+
+        {turbines.length === 0 ? (
+          <div className="p-12 text-center">
+            <p className="text-sm font-medium text-slate-900">No turbines registered</p>
+            <p className="text-xs text-slate-500 mt-1">Add your first unit using the registration button above.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-medium uppercase tracking-wider text-[11px]">
+                  <th className="py-3 px-5">Unit Code</th>
+                  <th className="py-3 px-5">Model</th>
+                  <th className="py-3 px-5">Capacity</th>
+                  <th className="py-3 px-5">Status</th>
+                  <th className="py-3 px-5">Assigned Engineer</th>
+                  <th className="py-3 px-5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                {turbines.map((turbine) => (
+                  <tr key={turbine._id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-3.5 px-5 font-semibold text-slate-900 font-mono">
+                      {turbine.turbineCode}
+                    </td>
+                    <td className="py-3.5 px-5 text-slate-600">
+                      {turbine.model || 'Standard'}
+                    </td>
+                    <td className="py-3.5 px-5 font-mono">
+                      {turbine.capacity ? `${turbine.capacity} kW` : '1500 kW'}
+                    </td>
+                    <td className="py-3.5 px-5">
+                      {getStatusBadge(turbine.status)}
+                    </td>
+                    <td className="py-3.5 px-5 text-slate-600">
+                      {turbine.assignedEngineerId?.name ? (
                         <div>
-                          <h3 className="font-bold text-base text-white">
-                            {turbine.turbineCode || 'Turbine'}
-                          </h3>
-                          <p className="text-xs text-slate-400">{turbine.model || 'Standard'}</p>
+                          <div className="font-medium text-slate-900">{turbine.assignedEngineerId.name}</div>
+                          <div className="text-[11px] text-slate-400 font-mono">{turbine.assignedEngineerId.email}</div>
                         </div>
-                        <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full border ${
-                          isUnitActive
-                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                            : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
-                        }`}>
-                          {turbine.status || 'ACTIVE'}
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 bg-slate-950/60 rounded-lg p-2.5 border border-slate-800/60 mb-3">
-                        <div>
-                          <span className="text-[10px] uppercase text-slate-500 block font-semibold">Rated Cap.</span>
-                          <span className="text-sm font-bold text-slate-200">
-                            {turbine.capacity ? `${turbine.capacity} kW` : '1500 kW'}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] uppercase text-slate-500 block font-semibold">Health</span>
-                          <span className={`text-sm font-bold ${isUnitActive ? 'text-teal-400' : 'text-amber-400'}`}>
-                            {isUnitActive ? '98.5%' : 'Alert'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 pt-2.5 border-t border-slate-800">
-                      <div className="flex items-center justify-between text-xs text-slate-400">
-                        <span className="truncate">
-                          {turbine.assignedEngineerId?.name || 'Unassigned'}
-                        </span>
-                        {turbine.assignedEngineerId?.email && (
-                          <span className="text-[11px] text-slate-500 font-mono truncate max-w-[100px]">
-                            {turbine.assignedEngineerId.email}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Edit / Delete Action Buttons */}
-                      <div className="flex items-center gap-2">
+                      ) : (
+                        <span className="text-slate-400 italic">Unassigned</span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-5 text-right">
+                      <div className="inline-flex items-center gap-2">
                         <button
                           onClick={() => handleOpenModal(turbine)}
-                          className="flex-1 py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-cyan-400 rounded-lg text-xs font-semibold transition border border-slate-700"
+                          className="px-2.5 py-1 text-xs font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 rounded transition"
                         >
                           Edit
                         </button>
                         <button
                           disabled={deletingTurbineId === turbine._id}
                           onClick={() => handleDelete(turbine)}
-                          className="py-1.5 px-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg text-xs font-semibold transition border border-rose-500/30 disabled:opacity-50 flex items-center justify-center min-w-[58px]"
+                          className="px-2.5 py-1 text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200 rounded transition disabled:opacity-50"
                         >
-                          {deletingTurbineId === turbine._id ? (
-                            <div className="w-3.5 h-3.5 border-2 border-rose-400 border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            'Delete'
-                          )}
+                          {deletingTurbineId === turbine._id ? 'Removing...' : 'Delete'}
                         </button>
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {/* Add / Edit Turbine Modal */}
+      {/* Modal Dialog */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative">
-            <div className="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
-              <h3 className="text-lg font-bold text-white">
-                {editingTurbineId ? 'Edit Turbine Details' : 'Add New Turbine'}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white border border-slate-200 rounded-lg w-full max-w-md p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-100">
+            <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+              <h3 className="text-sm font-bold text-slate-900">
+                {editingTurbineId ? 'Edit Turbine Details' : 'Register New Turbine'}
               </h3>
               <button
                 onClick={handleCloseModal}
-                className="text-slate-400 hover:text-white p-1 rounded-lg"
+                className="text-slate-400 hover:text-slate-600 text-lg leading-none"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                ×
               </button>
             </div>
 
             {formError && (
-              <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs rounded-lg">
+              <div className="mb-4 p-2.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded">
                 {formError}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Turbine Code</label>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Turbine Code</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. WTG-MUP-01"
                   value={formData.turbineCode}
                   onChange={(e) => setFormData({ ...formData, turbineCode: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Model</label>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Model Spec</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Suzlon S120, Vestas V110"
                   value={formData.model}
                   onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Capacity (kW)</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Capacity (kW)</label>
                   <input
                     type="number"
                     required
                     min="1"
-                    placeholder="e.g. 2100"
+                    placeholder="2100"
                     value={formData.capacity}
                     onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Status</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Status</label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500"
+                    className="w-full bg-white border border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
                   >
                     <option value="ACTIVE">ACTIVE</option>
                     <option value="MAINTENANCE">MAINTENANCE</option>
@@ -552,41 +433,39 @@ const ManagerDashboard = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">
-                  Assigned Engineer ID <span className="text-slate-500 lowercase">(optional MongoDB ID)</span>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  Engineer ID <span className="text-slate-400 font-normal">(Optional MongoDB ObjectId)</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. 64dcba8e3a2b5e0012345678"
+                  placeholder="64dcba8e3a2b5e0012345678"
                   value={formData.assignedEngineerId}
                   onChange={(e) => setFormData({ ...formData, assignedEngineerId: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-xs text-slate-900 font-mono focus:outline-none focus:ring-1 focus:ring-slate-900"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition"
+                  className="px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 border border-slate-200 rounded-md transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-sm font-medium transition disabled:opacity-50 flex items-center gap-2"
+                  className="px-3.5 py-1.5 text-xs font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-md transition disabled:opacity-50"
                 >
-                  {isSubmitting && (
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  )}
-                  <span>{isSubmitting ? 'Processing...' : editingTurbineId ? 'Update Turbine' : 'Create Turbine'}</span>
+                  {isSubmitting ? 'Saving...' : editingTurbineId ? 'Save Changes' : 'Create Turbine'}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
     </div>
   );
 };

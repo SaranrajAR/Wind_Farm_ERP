@@ -8,7 +8,8 @@ const userSchema = new mongoose.Schema({
     type: String, 
     enum: ['tnebAdmin', 'windFarmManager','Engineer'], 
     required: true
-  }
+  },
+  windFarmId: { type: mongoose.Schema.Types.ObjectId, ref: 'WindFarm', default: null }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

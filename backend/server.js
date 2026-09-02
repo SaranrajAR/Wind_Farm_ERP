@@ -17,6 +17,7 @@ app.use(cors({
 
 app.use('/api/auth', authRoutes);
 app.use('/api/manager',managerRoutes);
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 
 mongoose.connect(process.env.MONGO_URI)

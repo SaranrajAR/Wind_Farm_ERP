@@ -13,74 +13,75 @@ export default function Navbar() {
   const isManager = authUser?.role === 'windFarmManager';
 
   return (
-    <nav className="w-full bg-slate-900/95 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-50 px-6 lg:px-12 py-3.5 transition-all">
-      <div className="max-w-[1600px] mx-auto flex justify-between items-center">
+    <header className="w-full bg-white border-b border-slate-200 sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex justify-between items-center">
         
-        {/* Brand Logo / Home Button */}
-        <Link 
-          to="/" 
-          className="flex items-center gap-2.5 text-white hover:opacity-90 transition group"
-        >
-          <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:border-cyan-400/60 transition">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <span className="text-lg font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-400">
-            WindFarm <span className="text-cyan-400">ERP</span>
-          </span>
-        </Link>
-
-        {/* Right Section / Auth Details */}
-        {authUser ? (
-          <div className="flex items-center gap-3 sm:gap-5">
-            {/* Dashboard Link (Managers Only) */}
-            {isManager && (
-              <Link
-                to="/manager-dashboard"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 hover:border-cyan-500/40 transition"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-                Dashboard
-              </Link>
-            )}
-
-            {/* User Profile Badge */}
-            <div className="hidden sm:flex items-center gap-2 bg-slate-950/60 border border-slate-800 px-3 py-1.5 rounded-lg">
-              <span className="text-xs font-medium text-slate-300">{authUser.name}</span>
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-800 text-slate-400 px-2 py-0.5 rounded border border-slate-700">
-                {authUser.role}
+        {/* Brand */}
+        <div className="flex items-center gap-6">
+          <Link to="/" className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-md bg-slate-900 flex items-center justify-center text-white">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <div className="flex items-center gap-1.5 font-semibold text-sm tracking-tight text-slate-900">
+              <span>GridPulse</span>
+              <span className="text-slate-400 font-normal">/</span>
+              <span className="text-xs font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                SCADA ERP
               </span>
             </div>
+          </Link>
 
-            {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="px-3.5 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:border-rose-500/50 text-xs font-semibold rounded-lg transition duration-150"
-            >
-              Logout
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            <Link
-              to="/login"
-              className="text-xs font-semibold text-slate-300 hover:text-white px-3 py-1.5 transition"
-            >
-              Log In
-            </Link>
-            <Link
-              to="/signup"
-              className="text-xs font-semibold px-3.5 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-lg transition"
-            >
-              Sign Up
-            </Link>
-          </div>
-        )}
+          {authUser && isManager && (
+            <nav className="hidden md:flex items-center gap-1">
+              <Link
+                to="/manager-dashboard"
+                className="px-3 py-1.5 text-xs font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors"
+              >
+                Turbines & Operations
+              </Link>
+            </nav>
+          )}
+        </div>
+
+        {/* Right Section / Auth Details */}
+        <div className="flex items-center gap-3">
+          {authUser ? (
+            <>
+              <div className="hidden sm:flex items-center gap-2 pl-3 border-l border-slate-200">
+                <div className="text-right">
+                  <p className="text-xs font-medium text-slate-800 leading-none">{authUser.name}</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5 leading-none">{authUser.role}</p>
+                </div>
+              </div>
+
+              <button
+                onClick={handleLogout}
+                className="px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 rounded-md transition-colors"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link
+                to="/login"
+                className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 rounded-md transition-colors"
+              >
+                Log in
+              </Link>
+              <Link
+                to="/signup"
+                className="px-3 py-1.5 text-xs font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-md shadow-sm transition-colors"
+              >
+                Register
+              </Link>
+            </div>
+          )}
+        </div>
 
       </div>
-    </nav>
+    </header>
   );
 }

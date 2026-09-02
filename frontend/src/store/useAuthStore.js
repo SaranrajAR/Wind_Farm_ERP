@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import api from '../api/axios'; // Axios instance with baseURL and withCredentials: true
+import api from '../api/authAxios'; // Axios instance with baseURL and withCredentials: true
 import toast from 'react-hot-toast';
 
 export const useAuthStore = create((set) => ({

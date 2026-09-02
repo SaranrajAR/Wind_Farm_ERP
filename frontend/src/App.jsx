@@ -6,7 +6,8 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import ManagerDashboard from './pages/ManagerDashboard';
+import ManagerDashboard from './pages/ManagerDashboard'; // Adjust path if needed
+import AdminWindFarmManager from './pages/AdminWindFarmManager';// Adjust path if needed
 
 export default function App() {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -17,37 +18,41 @@ export default function App() {
 
   if (isCheckingAuth) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-950">
-        <p className="text-lg font-semibold text-slate-400">Loading auth state...</p>
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="flex items-center gap-3 text-slate-500 text-sm font-medium">
+          <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+          Authenticating session...
+        </div>
       </div>
     );
   }
 
   return (
     <Router>
-      {/* 1. Full-screen dark container to eliminate white side borders */}
-      <div className="min-h-screen w-full bg-slate-950 text-slate-100 flex flex-col">
-        <Toaster 
+      <div className="min-h-screen w-full bg-slate-50 text-slate-900 flex flex-col font-sans antialiased">
+        <Toaster
           position="top-right"
           toastOptions={{
-            duration: 3000,
+            duration: 3500,
             style: {
-              background: '#0f172a',
-              color: '#f8fafc',
-              border: '1px solid #1e293b'
+              background: '#ffffff',
+              color: '#0f172a',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05)',
+              fontSize: '13px',
+              borderRadius: '8px',
+              padding: '12px 16px',
             },
             success: {
-              duration: 3000,
               iconTheme: {
-                primary: '#10B981',
-                secondary: '#0f172a',
+                primary: '#059669',
+                secondary: '#ecfdf5',
               },
             },
             error: {
-              duration: 4000,
               iconTheme: {
-                primary: '#EF4444',
-                secondary: '#0f172a',
+                primary: '#e11d48',
+                secondary: '#fff1f2',
               },
             },
           }}
@@ -55,26 +60,54 @@ export default function App() {
 
         <Navbar />
 
-        {/* 2. Full-width main container without restrictive max-w-4xl constraint */}
         <main className="w-full flex-1">
           <Routes>
-            <Route 
-              path="/manager-dashboard" 
-              element={authUser ? <ManagerDashboard /> : <Navigate to="/login" />} 
+            {/* PUBLIC ONLY ROUTES */}
+            <Route
+              path="/login"
+              element={!authUser ? <Login /> : <Navigate to="/" replace />}
             />
-            <Route 
-              path="/" 
-              element={authUser ? <Home /> : <Navigate to="/login" />} 
+            <Route
+              path="/signup"
+              element={!authUser ? <Signup /> : <Navigate to="/" replace />}
             />
-            <Route 
-              path="/login" 
-              element={!authUser ? <Login /> : <Navigate to="/manager-dashboard" />} 
+
+            {/* ADMIN ONLY ROUTE */}
+            <Route
+              path="/admin/"
+              element={
+                !authUser ? (
+                  <Navigate to="/login" replace />
+                ) : authUser.role === 'tnebAdmin' ? (
+                  <AdminWindFarmManager />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
             />
-            <Route 
-              path="/signup" 
-              element={!authUser ? <Signup /> : <Navigate to="/manager-dashboard" />} 
+
+            {/* MANAGER ONLY ROUTE */}
+            <Route
+              path="/manager-dashboard"
+              element={
+                !authUser ? (
+                  <Navigate to="/login" replace />
+                ) : authUser.role === 'windFarmManager' ? (
+                  <ManagerDashboard />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
             />
-            <Route path="*" element={<Navigate to="/" />} />
+
+            {/* AUTHENTICATED GENERAL ROUTE */}
+            <Route
+              path="/"
+              element={authUser ? <Home /> : <Navigate to="/login" replace />}
+            />
+
+            {/* FALLBACK */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </div>
